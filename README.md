@@ -150,7 +150,13 @@ In order to analyze relationships across modalities without background dominance
 
 #### Evaluation Protocol
 
+
+
 <p align="right">(<a href="#top">back to top</a>)</p>
+
+---
+---
+---
 
 ### Results
 
@@ -158,13 +164,20 @@ In order to analyze relationships across modalities without background dominance
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+
+---
+---
+---
+
 ### Conclusions
 
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
+---
+---
+---
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [issues-shield]: https://img.shields.io/github/issues/rc-9/BraTS_UNet.svg?style=for-the-badge
