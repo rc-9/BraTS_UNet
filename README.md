@@ -140,17 +140,25 @@ In order to analyze relationships across modalities without background dominance
 
 
 
+---
+
 #### Model Architecture
 
 
+
+---
 
 #### Training Strategy
 
 
 
+---
+
 #### Evaluation Protocol
 
 
+
+---
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
