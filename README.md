@@ -29,7 +29,7 @@
 
 ### Problem Definition
 
-Gliomas are challenging to diagnose and treat due to their heterogeneous shape, size, and location. This project explores modern segmentation algorithms to tackle this problem using publicly-available MRI scans. These images have been annotated with specific tumor subregions by expert neuroradiologists, providing a reliable ground truth for model training and evaluation.
+Gliomas are challenging to diagnose and delineate due to their heterogeneous shape, size, and location. This project explores modern segmentation algorithms to tackle this problem using publicly-available MRI scans. These images have been annotated with specific tumor subregions by expert neuroradiologists, providing a reliable ground truth for model training and evaluation.
 
 The table below outlines the high-level project scope:
 
@@ -84,8 +84,6 @@ Although modeling is performed slice-wise in 2D, MRI volumes are inherently thre
 - **Coronal plane**: Divides anterior and posterior regions
 - **Sagittal plane**: Divides left and right hemispheres
 
-Visualizing these planes reinforces that 2D modeling is an approximation of a fundamentally 3D structure.
-
 ![planes](images/planes.png)
 
 ---
@@ -117,7 +115,7 @@ Raw intensity ranges vary significantly across slices and patients, revealing th
 
 ![intensities_both](images/intensities_both.png)
 
-To analyze relationship across modalities without background dominance skewing results, correlation was computed for only the middle third slice set for an example patient. This showed strong overlap between T1 and T2 intensities and a notable divergence between T1Gd and T2-FLAIR. This suggests that while some modalities carry overlapping information, contrast-enchanced T1Gd and T2-FLAIR provide distinct signal characteristics. These may serve as strong candidates for a computationally-efficient baseline configuration.
+In order to analyze relationships across modalities without background dominance skewing results, correlation was computed for only the middle-third slice set for an example patient. This showed strong overlap between T1 and T2 intensities and a notable divergence between T1Gd and T2-FLAIR. This suggests that while some modalities carry overlapping information, contrast-enchanced T1Gd and T2-FLAIR provide distinct signal characteristics. These may serve as strong candidates for a computationally-efficient baseline configuration.
 
 ![intensity_modalities](images/intensity_modalities.png)
 
