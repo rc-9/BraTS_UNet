@@ -115,7 +115,7 @@ Raw intensity ranges vary significantly across slices and patients, revealing th
 
 ![intensities_both](images/intensities_both.png)
 
-In order to analyze relationships across modalities without background dominance skewing results, correlation was computed for only the middle-third slice set for an example patient. This showed strong overlap between T1 and T2 intensities and a notable divergence between T1Gd and T2-FLAIR. This suggests that while some modalities carry overlapping information, contrast-enchanced T1Gd and T2-FLAIR provide distinct signal characteristics. These may serve as strong candidates for a computationally-efficient baseline configuration.
+In order to analyze relationships across modalities without background dominance skewing results, correlation was computed for only the middle-third slice set for an example patient. This showed strong overlap between T1 and T2 intensities and a notable divergence between T1Gd and T2-FLAIR. This suggests that while some modalities carry overlapping information, contrast-enhanced T1Gd and T2-FLAIR provide distinct signal characteristics. These may serve as strong candidates for a computationally-efficient baseline configuration.
 
 ![intensity_modalities](images/intensity_modalities.png)
 
@@ -128,37 +128,57 @@ In order to analyze relationships across modalities without background dominance
 
 
 
-
-
-
-
-
-
 ### Methodology
 
 #### Preprocessing Pipeline
 
-
-
+To ensure stable and leakage-free training, preprocessing was performed at both the patient and slice levels.
+- **Patient-level split**: Train/validation separation was performed at the patient level to prevent correlated slices from appearing in both sets.
+- **Slice extraction**: 3D MRI volumes were decomposed into 2D axial slices to reduce computational cost and enable training within Colab GPU limits.
+- **Modality selection**: Only T1Gd and T2-FLAIR were used for the baseline configuration, balancing representational strength and efficiency.
+- **Intensity normalization**: Each slice was normalized independently to reduce inter-patient intensity variability and stabilize optimization.
+- **Resizing**: Slices were downscaled to a uniform spatial resolution to reduce memory usage and accelerate training.
+- **Mask encoding**: Tumor subregions were converted into a 3-channel binary tensor (NEC/NET, ED, ET), enabling multi-label segmentation.
+  
 ---
 
 #### Model Architecture
 
 
+A standard **U-Net** architecture was implemented as the baseline segmentation model.
+- Encoder–decoder structure with symmetric skip connections
+- Progressive downsampling to capture contextual features
+- Skip connections to preserve fine-grained spatial information
+- Final 1×1 convolution projecting to 3 output channels
+
+The network operates on 2D slices independently. While this removes volumetric context, it significantly reduces computational burden and allows rapid experimentation. The architecture was intentionally kept lightweight to establish a reproducible baseline before introducing architectural complexity.
 
 ---
 
 #### Training Strategy
 
+Training was designed to balance stability, efficiency, and interpretability.
+
+- **Loss function:** Dice loss (multi-label formulation) to directly optimize overlap under severe class imbalance
+- **Optimizer:** Adam with adaptive learning rates
+- **Learning rate scheduling:** ReduceLROnPlateau based on validation Dice
+- **Batch size & epochs:** Tuned to remain within free-tier Colab GPU runtime constraints
+- **Checkpointing:** Model weights saved each epoch to mitigate session interruptions
+
+v1 prioritizes stability and clarity over peak performance, serving as a clean baseline for iterative improvement. On the other hand, v2 scales up by incorporating attention mechanisms and data augmentation techniques, in addition to using a larger training set.
 
 
 ---
 
 #### Evaluation Protocol
 
+Model performance was evaluated on a held-out validation set using both quantitative and qualitative analysis.
 
+- **Primary metric:** Mean Dice coefficient across tumor subregions
+- **Per-class Dice:** NEC/NET, ED, and ET evaluated independently
+- **Slice-level visualization:** Predicted masks compared directly to ground truth
 
----
+Using both metrics and visual inspection helps avoid misleading conclusions.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -168,6 +188,25 @@ In order to analyze relationships across modalities without background dominance
 
 ### Results
 
+The baseline U-Net was evaluated on the held-out validation patient using Dice metrics:
+
+| Tumor Subregion | Dice Score |
+| :---: | :---: |
+| Necrotic / Non-Enhancing Core (NEC/NET) | 0.428 |
+| Peritumoral Edema (ED)                  | 0.457 |
+| Enhancing Tumor (ET)                    | 0.605 |
+| **Mean Dice**                           | 0.497 |
+
+- The model segments **ET** more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices.
+- Overall performance is modest, as expected for a small-sample baseline designed for fast prototyping.
+
+Slice-level visualizations highlight spatial predictions versus the pre-annotated masks:
+
+- Predicted masks capture **ET rims** well but struggle with diffuse **edema** and small necrotic cores.
+- Visual inspection confirms alignment of predicted tumor subregions with anatomical structures in high-confidence slices.
+- Performance varies across slices, emphasizing the importance of both **quantitative metrics** and **slice-level visualization** in medical imaging.
+
+![v1pred](images/v1pred.png)
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -179,6 +218,12 @@ In order to analyze relationships across modalities without background dominance
 
 ### Conclusions
 
+This project establishes a baseline 2D U-Net pipeline for multi-class brain tumor segmentation from multi-modal MRI slices:
+- The model reached a mean Dice score of **0.497**. Performance was strongest on enhancing tumor (ET) regions, while necrotic core and edema remained challenging, largely due to class imbalance and less distinct boundaries.
+- Slice-level visualizations show predictions that generally follow anatomical structure, with noticeable variability across cases.
+- The pipeline is modular end-to-end; data loading, preprocessing, training, validation metrics, and qualitative review are all structured for reproducibility.
+
+Overall, this serves as a solid starting point for further tuning, data balancing strategies, and architectural improvements toward more clinically reliable segmentation.
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
