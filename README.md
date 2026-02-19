@@ -204,29 +204,28 @@ The baseline U-Net was evaluated on the validation set across various metrics. A
 |46\.0|0\.784|0\.769|0\.588|0\.575|0\.466|0\.724|0\.146|0\.349|0\.285|0\.193|0\.375|0\.364|
 |50\.0|0\.785|0\.77|0\.581|0\.576|0\.453|0\.715|0\.131|0\.342|0\.285|0\.208|0\.367|0\.371|
 
+**Mean Dice**: 0.58 <br/>
+**Necrotic / Non-Enhancing Core (NEC/NET)**: 0.58 <br/>
+**Peritumoral Edema (ED)**: 0.45 <br/> 
+**Enhancing Tumor (ET)**: 0.71 
 
-**Mean Dice**: 0.58
-**Necrotic / Non-Enhancing Core (NEC/NET)**: 0.58
-**Peritumoral Edema (ED)**: 0.45                  
-**Enhancing Tumor (ET)**: 0.71                  
+![dice_channels](images/dice_channels.png)
 
 The model segments **ET** more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices. Overall performance is modest, as expected for a small-sample baseline designed for fast prototyping.
 
-Slice-level visualizations highlight spatial predictions versus the pre-annotated masks:
+![train_val_loss](images/train_val_loss.png)
 
-- Predicted masks capture **ET rims** well but struggle with diffuse **edema** and small necrotic cores.
+The training and validation loss plot shows that the network converges steadily over epochs, with validation loss generally following the training trend. Stabilizes after epoch 20, with minor fluctuations indicating sensitivity to small batch sizes and slice-level variance.
+
+Slice-level visualizations highlight spatial predictions versus the pre-annotated masks:
+- Predicted masks capture ET rims well but struggle with diffuse edema and small necrotic cores.
 - Visual inspection confirms alignment of predicted tumor subregions with anatomical structures in high-confidence slices.
-- Performance varies across slices, emphasizing the importance of both **quantitative metrics** and **slice-level visualization** in medical imaging.
+- Performance varies across slices, emphasizing the importance of both quantitative metrics and slice-level visualization in medical imaging.
+
+An example slice for a validation volume is shown below for illustrative purposes. In reality, visual assessments of predictions vary substantially across slices.
 
 ![v1pred](images/v1_pred.png)
 
-<div style="overflow-x: scroll; white-space: nowrap;">
-  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
-  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
-  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
-  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
-  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
-</div>
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
