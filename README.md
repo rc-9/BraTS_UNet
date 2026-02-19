@@ -188,17 +188,29 @@ Using both metrics and visual inspection helps avoid misleading conclusions.
 
 ### Results
 
-The baseline U-Net was evaluated on the held-out validation patient using Dice metrics:
+The baseline U-Net was evaluated on the validation set across various metrics. A subset (for every 5 epochs) is shown below:
 
-| Tumor Subregion | Dice Score |
-| :---: | :---: |
-| Necrotic / Non-Enhancing Core (NEC/NET) | 0.428 |
-| Peritumoral Edema (ED)                  | 0.457 |
-| Enhancing Tumor (ET)                    | 0.605 |
-| **Mean Dice**                           | 0.497 |
+|epoch|train\_loss|val\_loss|mean\_dice|dice\_NEC/NET|dice\_ED|dice\_ET|prec\_NEC/NET|prec\_ED|prec\_ET|recall\_NEC/NET|recall\_ED|recall\_ET|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|1\.0|0\.975|0\.973|0\.219|0\.006|0\.41|0\.241|0\.003|0\.22|0\.058|0\.4|0\.473|0\.373|
+|6\.0|0\.864|0\.832|0\.309|0\.074|0\.232|0\.621|0\.04|0\.246|0\.271|0\.389|0\.303|0\.37|
+|11\.0|0\.835|0\.819|0\.423|0\.271|0\.409|0\.589|0\.067|0\.292|0\.209|0\.387|0\.304|0\.389|
+|16\.0|0\.818|0\.771|0\.581|0\.562|0\.46|0\.721|0\.123|0\.369|0\.236|0\.285|0\.347|0\.398|
+|21\.0|0\.8|0\.766|0\.615|0\.58|0\.546|0\.72|0\.141|0\.369|0\.271|0\.203|0\.354|0\.385|
+|26\.0|0\.791|0\.772|0\.567|0\.542|0\.464|0\.694|0\.121|0\.342|0\.279|0\.211|0\.362|0\.376|
+|31\.0|0\.788|0\.773|0\.569|0\.55|0\.449|0\.708|0\.118|0\.335|0\.279|0\.206|0\.361|0\.379|
+|36\.0|0\.785|0\.771|0\.584|0\.573|0\.452|0\.727|0\.126|0\.343|0\.278|0\.206|0\.36|0\.379|
+|41\.0|0\.784|0\.767|0\.572|0\.566|0\.453|0\.697|0\.128|0\.339|0\.284|0\.209|0\.368|0\.376|
+|46\.0|0\.784|0\.769|0\.588|0\.575|0\.466|0\.724|0\.146|0\.349|0\.285|0\.193|0\.375|0\.364|
+|50\.0|0\.785|0\.77|0\.581|0\.576|0\.453|0\.715|0\.131|0\.342|0\.285|0\.208|0\.367|0\.371|
 
-- The model segments **ET** more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices.
-- Overall performance is modest, as expected for a small-sample baseline designed for fast prototyping.
+
+**Mean Dice**: 0.58
+**Necrotic / Non-Enhancing Core (NEC/NET)**: 0.58
+**Peritumoral Edema (ED)**: 0.45                  
+**Enhancing Tumor (ET)**: 0.71                  
+
+The model segments **ET** more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices. Overall performance is modest, as expected for a small-sample baseline designed for fast prototyping.
 
 Slice-level visualizations highlight spatial predictions versus the pre-annotated masks:
 
@@ -206,7 +218,15 @@ Slice-level visualizations highlight spatial predictions versus the pre-annotate
 - Visual inspection confirms alignment of predicted tumor subregions with anatomical structures in high-confidence slices.
 - Performance varies across slices, emphasizing the importance of both **quantitative metrics** and **slice-level visualization** in medical imaging.
 
-![v1pred](images/v1pred.png)
+![v1pred](images/v1_pred.png)
+
+<div style="overflow-x: scroll; white-space: nowrap;">
+  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
+  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
+  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
+  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
+  <img src="v1_pred.png" alt="v1_pred.png" style="display: inline-block; height: 150px; margin: 5px;">
+</div>
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -219,7 +239,7 @@ Slice-level visualizations highlight spatial predictions versus the pre-annotate
 ### Conclusions
 
 This project establishes a baseline 2D U-Net pipeline for multi-class brain tumor segmentation from multi-modal MRI slices:
-- The model reached a mean Dice score of **0.497**. Performance was strongest on enhancing tumor (ET) regions, while necrotic core and edema remained challenging, largely due to class imbalance and less distinct boundaries.
+- The model reached a mean Dice score of **0.581**. Performance was strongest on enhancing tumor (ET) regions, while necrotic core and edema remained challenging, largely due to class imbalance and less distinct boundaries.
 - Slice-level visualizations show predictions that generally follow anatomical structure, with noticeable variability across cases.
 - The pipeline is modular end-to-end; data loading, preprocessing, training, validation metrics, and qualitative review are all structured for reproducibility.
 
