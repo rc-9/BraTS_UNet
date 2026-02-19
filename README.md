@@ -136,14 +136,13 @@ To ensure stable and leakage-free training, preprocessing was performed at both 
 - **Patient-level split**: Train/validation separation was performed at the patient level to prevent correlated slices from appearing in both sets.
 - **Slice extraction**: 3D MRI volumes were decomposed into 2D axial slices to reduce computational cost and enable training within Colab GPU limits.
 - **Modality selection**: Only T1Gd and T2-FLAIR were used for the baseline configuration, balancing representational strength and efficiency.
-- **Intensity normalization**: Each slice was normalized independently to reduce inter-patient intensity variability and stabilize optimization.
+- **Intensity normalization**: Each slice was normalized independently to reduce inter-patient intensity variability and stabilize optimization. This per-slice z-score normalization removes scanner-related intensity variations, keeps contrasts consistent across patients, and ensures that training and validation data are treated identically without any data leakage.
 - **Resizing**: Slices were downscaled to a uniform spatial resolution to reduce memory usage and accelerate training.
 - **Mask encoding**: Tumor subregions were converted into a 3-channel binary tensor (NEC/NET, ED, ET), enabling multi-label segmentation.
   
 ---
 
 #### Model Architecture
-
 
 A standard **U-Net** architecture was implemented as the baseline segmentation model.
 - Encoder–decoder structure with symmetric skip connections
@@ -227,7 +226,6 @@ An example slice for a validation volume is shown below for illustrative purpose
 ![v1pred](images/v1_pred.png)
 
 
-
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
@@ -237,13 +235,7 @@ An example slice for a validation volume is shown below for illustrative purpose
 
 ### Conclusions
 
-This project establishes a baseline 2D U-Net pipeline for multi-class brain tumor segmentation from multi-modal MRI slices:
-- The model reached a mean Dice score of **0.581**. Performance was strongest on enhancing tumor (ET) regions, while necrotic core and edema remained challenging, largely due to class imbalance and less distinct boundaries.
-- Slice-level visualizations show predictions that generally follow anatomical structure, with noticeable variability across cases.
-- The pipeline is modular end-to-end; data loading, preprocessing, training, validation metrics, and qualitative review are all structured for reproducibility.
-
-Overall, this serves as a solid starting point for further tuning, data balancing strategies, and architectural improvements toward more clinically reliable segmentation.
-
+This project implements a 2D U-Net pipeline for multi-class brain tumor segmentation from multi-modal MRI slices. The baseline model achieved a mean Dice score of **0.581**, performing best on enhancing tumor (ET) regions (**0.715**) while necrotic core and edema remained challenging due to class imbalance and less distinct boundaries. Slice-level visualizations show predictions generally follow anatomical structures, though variability exists across cases. The pipeline is modular and fully reproducible. A preliminary upgrade incorporating attention mechanisms and data augmentation was also tested, but further architectural tuning and expanded compute are needed to improve performance. Overall, this baseline provides a solid foundation for experimentation, data balancing, and iterative refinement toward clinically meaningful segmentation.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
