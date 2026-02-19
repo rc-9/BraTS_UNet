@@ -1,6 +1,6 @@
 [![Issues][issues-shield]][issues-url]
 
-
+<div>
 <h1 align="center">BraTS-UNet</h1>
 <h2 align="center">Brain Tumor Segmentation with U-Net on Multi-Modal MRI</h2>
   <p align="center">
@@ -36,7 +36,7 @@ The table below outlines the high-level project scope:
 |  |  |
 | :--- | :--- |
 | **Task** | 2D semantic segmentation; each slice will be processed independently while approximating 3D tumor structure |
-| **Input** | Multi-channel MRI slices (T1Gd & T2-FLAIR only for baseline version) |
+| **Input** | Multi-channel MRI slices (T1Gd & T2-FLAIR for baseline version) |
 | **Output** | Multi-channel segmentation masks with the same spatial dimensions as input |
 | **Metrics** | - Primary: Dice coefficient (and Dice loss for optimization) <br/> - Secondary: IoU, pixel accuracy, precision & recall |
 | **Constraints** | - Training runtime ≤ 4–6 hours (to ensure stability on free-tier Colab T4 GPU) <br> - Dataset size is moderate; batch size & network depth must balance speed & memory <br> - Avoid heavy augmentation |
@@ -63,7 +63,7 @@ Inspection of the metadata and survival information reveals a slice-level class 
 
 #### Imaging Modalities
 
-The imaging data is organized at the slice level for modeling convenience. In total, there are 57k+ 2D slices derived from 369 patients. Because slices from the same patient are highly correlated, train/validation splits must be performed at the patient level to prevent data leakage. Each slice mantains spatial alignment across modalities, enabling multi-channel input into segmentation networks. The four MRI modalities capture complementary information:
+The imaging data is organized at the slice level for modeling convenience. In total, there are 57k+ 2D slices derived from 369 patients. Because slices from the same patient are highly correlated, train/validation splits must be performed at the patient level to prevent data leakage. Each slice maintains spatial alignment across modalities, enabling multi-channel input into segmentation networks. The four MRI modalities capture complementary information:
 - **T1**: Baseline anatomical structure
 - **T1Gd**: Post-contrast scan highlighting enhancing tumor regions
 - **T2**: Emphasizes fluid-rich regions
@@ -144,7 +144,12 @@ To ensure stable and leakage-free training, preprocessing was performed at both 
 
 #### Model Architecture
 
-A standard **U-Net** architecture was implemented as the baseline segmentation model.
+A standard **U-Net** architecture was implemented as the baseline segmentation model. Conceptually, a U-Net consists of a contracting path (encoder) to capture context and an expanding path (decoder) to enable precise localization. Skip connections between corresponding encoder and decoder layers preserve fine-grained spatial details, while each step typically includes two convolutional layers with ReLU activation. The final 1×1 convolution projects features to 3 output channels, corresponding to the tumor subregions.
+
+![unet](images/unet.png)
+<br/>Source: *[U-Net: Convolutional Networks for Biomedical Image Segmentation by Olaf Ronneberger, Philipp Fischer, Thomas Brox](https://link.springer.com/chapter/10.1007/978-3-319-24574-4_28)*
+
+Key aspects of the implemented network:
 - Encoder–decoder structure with symmetric skip connections
 - Progressive downsampling to capture contextual features
 - Skip connections to preserve fine-grained spatial information
@@ -217,7 +222,7 @@ The model segments **ET** more reliably than NEC/NET or ED, reflecting the inher
 The training and validation loss plot shows that the network converges steadily over epochs, with validation loss generally following the training trend. Stabilizes after epoch 20, with minor fluctuations indicating sensitivity to small batch sizes and slice-level variance.
 
 Slice-level visualizations highlight spatial predictions versus the pre-annotated masks:
-- Predicted masks capture ET rims well but struggle with diffuse edema and small necrotic cores.
+- Predicted masks capture ET rims well but struggle with edema and diffuse necrotic cores.
 - Visual inspection confirms alignment of predicted tumor subregions with anatomical structures in high-confidence slices.
 - Performance varies across slices, emphasizing the importance of both quantitative metrics and slice-level visualization in medical imaging.
 
