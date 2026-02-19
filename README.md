@@ -1,13 +1,19 @@
 [![Issues][issues-shield]][issues-url]
 
+<p align="center">
+<img src="images/header2.png" width="1200">
+</p>
+<!-- <p align="right"><em>Image Source: Frontiers in Neuroscience | DO  - 10.3389/fnins.2023.1203104</em></p> -->
+
 <div>
 <h1 align="center">BraTS-UNet</h1>
 <h2 align="center">Brain Tumor Segmentation with U-Net on Multi-Modal MRI</h2>
+
   <p align="center">
     <br />
-    <a href="https://github.com/rc-9/DepMap_HRD_PARPi/issues">Report Bug</a>
+    <a href="https://github.com/rc-9/BraTS_UNet/issues">Report Bug</a>
     ·
-    <a href="https://github.com/rc-9/DepMap_HRD_PARPi/issues">Request Feature</a>
+    <a href="https://github.com/rc-9/BraTS_UNet/issues">Request Feature</a>
   </p>
 </div>
 
@@ -36,11 +42,11 @@ The table below outlines the high-level project scope:
 |  |  |
 | :--- | :--- |
 | **Task** | 2D semantic segmentation; each slice will be processed independently while approximating 3D tumor structure |
-| **Input** | Multi-channel MRI slices (T1Gd & T2-FLAIR for baseline version) |
+| **Input** | Multi-channel MRI slices (T1, T1Gd, T2, T2-FLAIR) |
 | **Output** | Multi-channel segmentation masks with the same spatial dimensions as input |
-| **Metrics** | - Primary: Dice coefficient (and Dice loss for optimization) <br/> - Secondary: IoU, pixel accuracy, precision & recall |
-| **Constraints** | - Training runtime ≤ 4–6 hours (to ensure stability on free-tier Colab T4 GPU) <br> - Dataset size is moderate; batch size & network depth must balance speed & memory <br> - Avoid heavy augmentation |
-| **Success Criteria** | - Competitive baseline Dice for a lightweight, reproducible model <br> - Complete training within runtime limits <br> - Predictions visually align with ground truth (no major over/under-segmentation) |
+| **Metrics** | - Primary: Dice Coefficient (Dice Loss + BCE for optimization) <br/> - Secondary: Precision & Recall |
+| **Constraints** | - Training runtime ≤ 12 hours (to ensure stability on free-tier Colab T4 GPU) <br> - Dataset size is moderate; batch size & network depth must balance speed & memory <br> - Avoid heavy augmentation |
+| **Success Criteria** | - Competitive baseline Dice for a lightweight, reproducible model <br> - Complete training within runtime limits <br> - Predictions visually align with ground truth (no major over/under-segmentation) <br> - Set up attention mechanisms and data augmentation for v2+ |
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -133,9 +139,10 @@ In order to analyze relationships across modalities without background dominance
 #### Preprocessing Pipeline
 
 To ensure stable and leakage-free training, preprocessing was performed at both the patient and slice levels.
-- **Patient-level split**: Train/validation separation was performed at the patient level to prevent correlated slices from appearing in both sets.
+- **Patient-level split**: Train / validation separation was performed at the patient level to prevent correlated slices from appearing in both sets.
 - **Slice extraction**: 3D MRI volumes were decomposed into 2D axial slices to reduce computational cost and enable training within Colab GPU limits.
-- **Modality selection**: Only T1Gd and T2-FLAIR were used for the baseline configuration, balancing representational strength and efficiency.
+- **Lazy Loading & Memory Efficiency**: MRI volumes were loaded on demand rather than preloaded into memory, enabling training on desired slices within limited GPU RAM constraints. This streaming-based dataset design minimizes memory footprint and scales efficiently with dataset size.
+- **Modality selection**: Only T1Gd and T2-FLAIR were used for the intial configuration and was expanded in subsequent iterations.
 - **Intensity normalization**: Each slice was normalized independently to reduce inter-patient intensity variability and stabilize optimization. This per-slice z-score normalization removes scanner-related intensity variations, keeps contrasts consistent across patients, and ensures that training and validation data are treated identically without any data leakage.
 - **Resizing**: Slices were downscaled to a uniform spatial resolution to reduce memory usage and accelerate training.
 - **Mask encoding**: Tumor subregions were converted into a 3-channel binary tensor (NEC/NET, ED, ET), enabling multi-label segmentation.
@@ -144,18 +151,12 @@ To ensure stable and leakage-free training, preprocessing was performed at both 
 
 #### Model Architecture
 
-A standard **U-Net** architecture was implemented as the baseline segmentation model. Conceptually, a U-Net consists of a contracting path (encoder) to capture context and an expanding path (decoder) to enable precise localization. Skip connections between corresponding encoder and decoder layers preserve fine-grained spatial details, while each step typically includes two convolutional layers with ReLU activation. The final 1×1 convolution projects features to 3 output channels, corresponding to the tumor subregions.
+A standard **U-Net** architecture was implemented as the baseline segmentation model. Conceptually, a U-Net consists of a contracting path (encoder) to capture context and an expanding path (decoder) to enable precise localization. Skip connections between corresponding encoder and decoder layers preserve fine-grained spatial details, while each step typically includes two convolutional layers with ReLU activation. The final 1×1 convolution projects features to 3 output channels, corresponding to the tumor subregions. 
 
 ![unet](images/unet.png)
 <br/>Source: *[U-Net: Convolutional Networks for Biomedical Image Segmentation by Olaf Ronneberger, Philipp Fischer, Thomas Brox](https://link.springer.com/chapter/10.1007/978-3-319-24574-4_28)*
 
-Key aspects of the implemented network:
-- Encoder–decoder structure with symmetric skip connections
-- Progressive downsampling to capture contextual features
-- Skip connections to preserve fine-grained spatial information
-- Final 1×1 convolution projecting to 3 output channels
-
-The network operates on 2D slices independently. While this removes volumetric context, it significantly reduces computational burden and allows rapid experimentation. The architecture was intentionally kept lightweight to establish a reproducible baseline before introducing architectural complexity.
+The network operates on 2D slices independently. While this removes volumetric context, it significantly reduces computational burden and allows rapid experimentation. The architecture was intentionally kept lightweight to establish a reproducible baseline before introducing architectural complexity. However, in subsequent versions, data augmentation and an attention gate module was also integrated into the skip connections to suppress irrelevant background activations and emphasize tumor-relevant spatial features, improving feature refinement during decoding and modestly boosting segmentation performance in challenging subregions.
 
 ---
 
@@ -163,7 +164,7 @@ The network operates on 2D slices independently. While this removes volumetric c
 
 Training was designed to balance stability, efficiency, and interpretability.
 
-- **Loss function:** Dice loss (multi-label formulation) to directly optimize overlap under severe class imbalance
+- **Loss function:** Dice loss (multi-label formulation) to directly optimize overlap under severe class imbalance; Binary Cross-Entropy (BCE) was also used in subsequent iterations
 - **Optimizer:** Adam with adaptive learning rates
 - **Learning rate scheduling:** ReduceLROnPlateau based on validation Dice
 - **Batch size & epochs:** Tuned to remain within free-tier Colab GPU runtime constraints
@@ -176,13 +177,11 @@ v1 prioritizes stability and clarity over peak performance, serving as a clean b
 
 #### Evaluation Protocol
 
-Model performance was evaluated on a held-out validation set using both quantitative and qualitative analysis.
+Model performance was evaluated on a held-out validation set using both quantitative (metrics) analysis and qualitative (individual slice) comparison.
 
 - **Primary metric:** Mean Dice coefficient across tumor subregions
 - **Per-class Dice:** NEC/NET, ED, and ET evaluated independently
 - **Slice-level visualization:** Predicted masks compared directly to ground truth
-
-Using both metrics and visual inspection helps avoid misleading conclusions.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -215,7 +214,7 @@ The baseline U-Net was evaluated on the validation set across various metrics. A
 
 ![dice_channels](images/dice_channels.png)
 
-The model segments **ET** more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices. Overall performance is modest, as expected for a small-sample baseline designed for fast prototyping.
+The model segments ET more reliably than NEC/NET or ED, reflecting the inherent class imbalance and boundary heterogeneity in MRI slices. Overall performance is modest, as expected for a small-sample baseline designed for limited GPU usage. 
 
 ![train_val_loss](images/train_val_loss.png)
 
@@ -226,7 +225,7 @@ Slice-level visualizations highlight spatial predictions versus the pre-annotate
 - Visual inspection confirms alignment of predicted tumor subregions with anatomical structures in high-confidence slices.
 - Performance varies across slices, emphasizing the importance of both quantitative metrics and slice-level visualization in medical imaging.
 
-An example slice for a validation volume is shown below for illustrative purposes. In reality, visual assessments of predictions vary substantially across slices.
+An example slice for a validation volume is shown below for illustrative purposes. In reality, however, visual assessments of predictions vary substantially across slices.
 
 ![v1pred](images/v1_pred.png)
 
@@ -244,9 +243,6 @@ This project implements a 2D U-Net pipeline for multi-class brain tumor segmenta
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
----
----
----
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [issues-shield]: https://img.shields.io/github/issues/rc-9/BraTS_UNet.svg?style=for-the-badge
